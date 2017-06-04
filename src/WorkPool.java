@@ -17,13 +17,22 @@ public class WorkPool {
         notifyAll();
     }
 
-    public synchronized RangeOfWork pop() throws InterruptedException {
-        while(rangeOfWorks.isEmpty())
+    public synchronized RangeOfWork getFirstReadyToWork() throws InterruptedException {
+        while(!hayAlMenosUnoQueEsteReadyToWork())
             wait();
-        RangeOfWork rangeOfWork = this.rangeOfWorks.get(this.rangeOfWorks.size() - 1);
-        this.rangeOfWorks.remove(this.rangeOfWorks.size() - 1);
+        RangeOfWork rangeOfWork = firstRangeOfWorkReadyToWork();
+        this.rangeOfWorks.remove(rangeOfWork);
         notifyAll();
         return rangeOfWork;
+    }
+
+    private RangeOfWork firstRangeOfWorkReadyToWork() {
+        return rangeOfWorks.stream().filter(aRange -> aRange.readyToWork()).findFirst().get();
+    }
+
+    private boolean hayAlMenosUnoQueEsteReadyToWork() {
+        return rangeOfWorks.stream().anyMatch(aRange-> aRange.readyToWork());
+
     }
 
 }

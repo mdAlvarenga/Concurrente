@@ -1,13 +1,18 @@
+import java.util.ArrayList;
+import java.util.List;
+
 public class RangeOfWork {
 
     private int start;
     private int end;
-    private RangeOfWork father;
+    private List<RangeOfWork> sons;
+    private boolean isSorted;
 
-    public RangeOfWork(int newStart, int newEnd, RangeOfWork father) {
-        this.start = newStart;
-        this.end = newEnd;
-        this.father = father;
+    public RangeOfWork(int start, int end) {
+        this.start = start;
+        this.end = end;
+        this.sons = new ArrayList<>();
+        this.isSorted = false;
     }
 
     public int size() {
@@ -24,5 +29,34 @@ public class RangeOfWork {
 
     public boolean isTheLast() {
         return this.getStart() == getEnd() ;
+    }
+
+    public boolean readyToWork() {
+        return !isSorted()&& (isTheLast() || allSonsIsSortered());
+    }
+
+    private boolean allSonsIsSortered() {
+        return sons.stream().allMatch(aRange -> aRange.isSorted());
+    }
+
+    public void agregarHijo(RangeOfWork rangeOfWork) {
+        this.sons.add(rangeOfWork);
+    }
+
+    public boolean isSorted() {
+        return isSorted;
+    }
+
+    public RangeOfWork getSecondSon() {
+        return sons.get(1);
+    }
+
+
+    public RangeOfWork getFirstSon() {
+        return sons.get(0);
+    }
+
+    public void finishOrder() {
+        this.isSorted = true;
     }
 }
