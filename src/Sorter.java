@@ -9,7 +9,7 @@ public class Sorter extends Thread {
     }
 
     private void mergeSortWorker(WorkPool workPool) throws InterruptedException {
-        while(true) {
+        while(!workPool.isEmpty()) {
             RangeOfWork rangeToWork = workPool.getFirstReadyToWork();
             if(rangeToWork.isTheLast()){
                return;
@@ -49,7 +49,6 @@ public class Sorter extends Thread {
         }
         return r;
     }
-
 
     @Override
     public void run() {
