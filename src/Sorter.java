@@ -2,27 +2,34 @@ public class Sorter extends Thread {
 
     private SorteableArray sorteableArray;
     private WorkPool workPool;
+    private JobStopper jobStopper;
 
-    public Sorter(SorteableArray sorteableArray, WorkPool WorkPool) {
+    public Sorter(SorteableArray sorteableArray, WorkPool WorkPool, JobStopper jobStopper) {
         this.sorteableArray = sorteableArray;
         this.workPool = WorkPool;
+        this.jobStopper = jobStopper;
     }
 
     private void mergeSortWorker(WorkPool workPool) throws InterruptedException {
-        while(!workPool.isEmpty()) {
+        while(workPool.hayAlMenosUnoQueEsteReadyToWork()) {
             RangeOfWork rangeToWork = workPool.getFirstReadyToWork();
+            System.out.println("Soy el thread:" +Thread.currentThread()+" y Tome el trabajo que tiene Start " + rangeToWork.getStart() + " hasta " + rangeToWork.getEnd());
             if(rangeToWork.isTheLast()){
+                rangeToWork.finishOrder(workPool);
                return;
             }
             RangeOfWork firstRangeSon = rangeToWork.getFirstSon();
             RangeOfWork secondRangeSon = rangeToWork.getSecondSon();
 
-            SorteableArray firstSorteableArray = createSorteableFrom(firstRangeSon.getStart(), firstRangeSon.getEnd());
-            SorteableArray secondSorteableArray = createSorteableFrom(secondRangeSon.getStart(), secondRangeSon.getEnd());
+            SorteableArray firstSorteableArray = createSorteableFrom(firstRangeSon);
+            SorteableArray secondSorteableArray = createSorteableFrom(secondRangeSon);
 
             this.sorteableArray.replaceArrayBetween(merge(firstSorteableArray, secondSorteableArray),firstRangeSon.getStart(),secondRangeSon.getEnd());
-            rangeToWork.finishOrder();
+            rangeToWork.finishOrder(workPool);
+            this.jobStopper.decrease();
         }
+        System.out.println("Soy el thread:" +Thread.currentThread()+" y ya no tengo mas trabajo");
+
     }
 
     private SorteableArray merge(SorteableArray aSorteableArray, SorteableArray otherSorteableArray) {
@@ -39,15 +46,20 @@ public class Sorter extends Thread {
         return bothArraysMerged;
     }
 
-    /*
-    buscar en el sorteableArray, los elementos entre esos dos indices, y meterlos en un array auxiliar.
-     */
-    private SorteableArray createSorteableFrom(int start, int end) {
-        SorteableArray r = new SorteableArray(end - start);
-        for (int i = start; i <= end; i++) {
-            r.add(sorteableArray.getInPosition(i));
+    private SorteableArray createSorteableFrom(RangeOfWork aRange) {
+
+        SorteableArray sorteableArray;
+        if(aRange.isTheLast()){
+            sorteableArray = new SorteableArray(1);
+            sorteableArray.add(this.sorteableArray.getInPosition(aRange.getStart()));
+        }else {
+            sorteableArray = new SorteableArray(aRange.getEnd() - aRange.getStart());
+            for (int i = aRange.getStart(); i <= aRange.getEnd(); i++) {
+                sorteableArray.add(this.sorteableArray.getInPosition(i));
+            }
         }
-        return r;
+
+        return sorteableArray;
     }
 
     @Override

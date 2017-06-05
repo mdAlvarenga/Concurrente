@@ -1,15 +1,17 @@
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 public class WorkPool {
 
     private ArrayList<RangeOfWork> rangeOfWorks;
 
     public WorkPool() {
-        this.rangeOfWorks = new ArrayList<RangeOfWork>();
+        this.rangeOfWorks = new ArrayList<>();
     }
 
-    public Boolean isEmpty() {
+    public synchronized Boolean isEmpty() {
         return this.rangeOfWorks.isEmpty();
+
     }
 
     public synchronized void push(RangeOfWork rangeOfWork) {
@@ -30,9 +32,18 @@ public class WorkPool {
         return rangeOfWorks.stream().filter(aRange -> aRange.readyToWork()).findFirst().get();
     }
 
-    private boolean hayAlMenosUnoQueEsteReadyToWork() {
+    public synchronized boolean hayAlMenosUnoQueEsteReadyToWork() {
         return rangeOfWorks.stream().anyMatch(aRange-> aRange.readyToWork());
 
     }
 
+    public  void clean() {
+        this.rangeOfWorks =
+                rangeOfWorks.stream().filter(aRange -> !aRange.isTheLast()).collect(Collectors.toCollection(ArrayList::new));
+
+    }
+
+    public Integer quantityOfWork() {
+        return this.rangeOfWorks.size();
+    }
 }

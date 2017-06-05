@@ -11,6 +11,10 @@ public class SorteableArray {
         this.cantidadDeElementosEnElArray = 0;
     }
 
+    public int[] array() {
+        return this.array;
+    }
+
     public synchronized int size() {
         return this.cantidadDeElementosEnElArray;
     }
@@ -27,23 +31,21 @@ public class SorteableArray {
         return contain;
     }
 
-    private synchronized void siHayLugarEnElArrayAgregar(int valor) {
-        array[cantidadDeElementosEnElArray] = valor;
+    private void safeAdd(int valor) {
+        this.array[cantidadDeElementosEnElArray] = valor;
         cantidadDeElementosEnElArray++;
-        notifyAll();
+
     }
 
-    private synchronized void agregarANuevoArraySiNoHayLugar(int valor){
-        int[] copiaArray = array;
-        array = new int[copiaArray.length * 2];
-        for (int i = 0; i < copiaArray.length; i++) {
-            array[i] = copiaArray[i];
+    private void AmpliarArray(){
+        int[] backUpArray = this.array;
+        this.array = new int[backUpArray.length * 2];
+        for (int i = 0; i < backUpArray.length; i++) {
+            this.array[i] = backUpArray[i];
         }
-        array[cantidadDeElementosEnElArray] = valor;
-        cantidadDeElementosEnElArray++;
     }
 
-    private synchronized int primerElementoDelArray(){
+    private int primerElementoDelArray(){
         int first = array[0];
         int[] copiaArray = new int[array.length];
         for (int i = 0; i < copiaArray.length-1; i++) {
@@ -54,11 +56,10 @@ public class SorteableArray {
         return first;
     }
 
-    public synchronized void add(int valor) {
-        if (cantidadDeElementosEnElArray < this.array.length)
-            siHayLugarEnElArrayAgregar(valor);
-        else
-            agregarANuevoArraySiNoHayLugar(valor);
+    public synchronized void add(int toAdd) {
+        if (cantidadDeElementosEnElArray == this.array.length)
+            AmpliarArray();
+        safeAdd(toAdd);
         notifyAll();
     }
 
@@ -84,26 +85,42 @@ public class SorteableArray {
         return primerElementoDelArray();
     }
 
+    public synchronized void replaceArrayBetween(SorteableArray arrayToReplace, int startPositionToReplace, int endPositionToReplace) {
+        int indexForExternalArray = 0;
+
+        for (int toReplaceIndex = startPositionToReplace; toReplaceIndex <= endPositionToReplace; toReplaceIndex++) {
+            this.array[toReplaceIndex] = arrayToReplace.getInPosition(indexForExternalArray);
+            indexForExternalArray++;
+        }
+        notifyAll();
+    }
+
+    public synchronized void addAll(SorteableArray elementsToAdd) {
+        int[] arrayToAdd = elementsToAdd.array();
+        for (int indexToAdd = 0; indexToAdd < elementsToAdd.size(); indexToAdd++) {
+            this.add(arrayToAdd[indexToAdd]);
+        }
+    }
+
     public void mergeSort( int threadQuantity) throws InterruptedException {
         if (this.size() > 1) {
-            WorkPool allUnitsOfWorks = createAllUnitsOfWorks(this); //Primero creamos todas las unid de trabajo posibles
-            //Creamos todos los threads que podamos, que van a ir trabajando a medida que se vayan desocupando,
-            // con las unid de trabajo que tengan todas sus "hijas" finalizadas
-            initializeThreadPool(this, allUnitsOfWorks, threadQuantity);
+            WorkPool allUnitsOfWorks = createAllUnitsOfWorks(this);
+            allUnitsOfWorks.clean();
+            JobStopper jobStopper = new JobStopper(allUnitsOfWorks.quantityOfWork());
+            initializeThreadPool(this, allUnitsOfWorks, threadQuantity, jobStopper);
+            jobStopper.waitToFinalize();
+            System.out.print("se acabo todo, todillo");
         }
     }
 
-    private void initializeThreadPool(SorteableArray sorteableArray, WorkPool workPool, Integer threadQuantity) {
-        List<Sorter> r = new ArrayList<Sorter>();
+    private void initializeThreadPool(SorteableArray sorteableArray, WorkPool workPool, Integer threadQuantity, JobStopper jobStopper) {
+        List<Sorter> threadPool = new ArrayList<>();
         for (int i = 0; i < threadQuantity; i++) {
-            r.add(new Sorter(sorteableArray, workPool));
+            threadPool.add(new Sorter(sorteableArray, workPool, jobStopper));
         }
-        r.stream().forEach(a -> a.start());
+        threadPool.stream().forEach(a -> a.start());
     }
 
-    /*
-        Ya recibe un sorteableArray con dos o mas elementos.
-     */
     private WorkPool createAllUnitsOfWorks(SorteableArray sorteableArray) {
         WorkPool workPool = new WorkPool();
         RangeOfWork principalRangeOFWork = new RangeOfWork(0, sorteableArray.size() - 1);
@@ -138,40 +155,17 @@ public class SorteableArray {
         return this.array[aPosition];
     }
 
-    public synchronized void addAll(SorteableArray elementsToAdd) {
-            int[] arrayToAdd = elementsToAdd.array();
-            for (int indexToAdd = 0; indexToAdd < elementsToAdd.size(); indexToAdd++) {
-                this.add(arrayToAdd[indexToAdd]);
-            }
-        }
-
-    public int[] array() {
-        return this.array;
-    }
-
-    public synchronized void replaceArrayBetween(SorteableArray arrayToReplace, int startPositionToReplace, int endPositionToReplace) {
-        int indexForExternalArray = 0;
-
-        for (int toReplaceIndex = startPositionToReplace; toReplaceIndex <= endPositionToReplace; toReplaceIndex++) {
-            this.array[toReplaceIndex] = arrayToReplace.getInPosition(indexForExternalArray);
-            indexForExternalArray++;
-        }
-    }
-
     public static void main(String[] args) throws InterruptedException {
-        int i = 9;
-        SorteableArray sorteableArray = new SorteableArray(9);
+        int i = 1000;
+        SorteableArray sorteableArray = new SorteableArray(1000);
         while(i > 0){
-            sorteableArray.add((int)(Math.random()*100+1));;
+            sorteableArray.add((int)(Math.random()*10000+1));;
             i--;
         }
         System.out.print("Antes del orden ");
         Printer.printList(sorteableArray.array);
 
-        sorteableArray.mergeSort(3);
-
-        System.out.print("thread actual:");
-        System.out.print(Thread.currentThread().getName());
+        sorteableArray.mergeSort(10);
 
         System.out.print("despues del orden :");
         Printer.printList(sorteableArray.array());

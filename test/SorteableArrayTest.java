@@ -55,6 +55,32 @@ public class SorteableArrayTest {
     }
 
     @Test
+    public void xxxxxx(){
+        SorteableArray ver = new SorteableArray(4);
+        ver.add(0);
+        ver.add(1);
+        ver.add(2);
+        ver.add(3);
+        assertTrue(ver.array()[0]== 0);
+        assertTrue(ver.array()[1]== 1);
+        assertTrue(ver.array()[2]== 2);
+        assertTrue(ver.array()[3]== 3);
+        assertTrue(ver.array().length == 4);
+
+        System.out.println(ver.array().length);
+        ver.add(9);
+
+        assertTrue(ver.array().length == 8);
+        assertTrue(ver.array()[0]== 0);
+        assertTrue(ver.array()[1]== 1);
+        assertTrue(ver.array()[2]== 2);
+        assertTrue(ver.array()[3]== 3);
+        assertTrue(ver.array()[4]== 9);
+        System.out.println(ver.array()[4]);
+        System.out.println(ver.array().length);
+    }
+
+    @Test
     public void cuandoOrdenoUnArregloObtengoElMismoArregloOrdenadoCorrectamente() throws InterruptedException{
         sortableArray.add(17);
         sortableArray.add(1);

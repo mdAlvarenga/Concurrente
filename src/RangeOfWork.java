@@ -12,7 +12,7 @@ public class RangeOfWork {
         this.start = start;
         this.end = end;
         this.sons = new ArrayList<>();
-        this.isSorted = false;
+        this.isSorted = isTheLast();
     }
 
     public int size() {
@@ -51,12 +51,12 @@ public class RangeOfWork {
         return sons.get(1);
     }
 
-
     public RangeOfWork getFirstSon() {
         return sons.get(0);
     }
 
-    public void finishOrder() {
+    public synchronized void finishOrder(WorkPool workPool) {
         this.isSorted = true;
+        //workPool.notify();
     }
 }
