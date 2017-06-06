@@ -10,52 +10,48 @@ public class Sorter extends Thread {
         this.jobStopper = jobStopper;
     }
 
-    private void mergeSortWorker(WorkPool workPool) throws InterruptedException {
-        while(workPool.hayAlMenosUnoQueEsteReadyToWork()) {
+    private void mergeSortWorker() throws InterruptedException {
+        while(workPool.atLeastOneIsReady()) {
             RangeOfWork rangeToWork = workPool.getFirstReadyToWork();
-            System.out.println("Soy el thread:" +Thread.currentThread()+" y Tome el trabajo que tiene Start " + rangeToWork.start() + " hasta " + rangeToWork.end());
             if(rangeToWork.isTheLast()){
                 rangeToWork.finishOrder();
-               return;
+                return;
             }
             RangeOfWork firstRangeSon = rangeToWork.getFirstSon();
             RangeOfWork secondRangeSon = rangeToWork.getSecondSon();
 
-            SorteableArray firstSorteableArray = createSorteableFrom(firstRangeSon);
-            SorteableArray secondSorteableArray = createSorteableFrom(secondRangeSon);
+            this.sorteableArray.replaceWithArrayBetween(
+                                    merge(createSorteableFrom(firstRangeSon), createSorteableFrom(secondRangeSon)),
+                                    firstRangeSon.start(),
+                                    secondRangeSon.end());
 
-            this.sorteableArray.replaceWithArrayBetween(merge(firstSorteableArray, secondSorteableArray),firstRangeSon.start(),secondRangeSon.end());
             rangeToWork.finishOrder();
             this.jobStopper.decrease();
         }
-        System.out.println("Soy el thread:" +Thread.currentThread()+" y ya no tengo mas trabajo");
-
     }
 
     private SorteableArray merge(SorteableArray aSorteableArray, SorteableArray otherSorteableArray) {
-
-        SorteableArray bothArraysMerged = new SorteableArray(aSorteableArray.size()+ otherSorteableArray.size());
+        SorteableArray mergedSorteableArray = new SorteableArray(aSorteableArray.size()+ otherSorteableArray.size());
         while ( !aSorteableArray.isEmpty() && !otherSorteableArray.isEmpty()){
             if(aSorteableArray.peek() <= otherSorteableArray.peek())
-                bothArraysMerged.add(aSorteableArray.pop());
+                mergedSorteableArray.add(aSorteableArray.pop());
             else
-                bothArraysMerged.add(otherSorteableArray.pop());
+                mergedSorteableArray.add(otherSorteableArray.pop());
         }
-        bothArraysMerged.addAll(aSorteableArray);
-        bothArraysMerged.addAll(otherSorteableArray);
-        return bothArraysMerged;
+        mergedSorteableArray.addAll(aSorteableArray);
+        mergedSorteableArray.addAll(otherSorteableArray);
+        return mergedSorteableArray;
     }
 
     private SorteableArray createSorteableFrom(RangeOfWork aRange) {
-
         SorteableArray sorteableArray;
         if(aRange.isTheLast()){
             sorteableArray = new SorteableArray(1);
             sorteableArray.add(this.sorteableArray.getInPosition(aRange.start()));
         }else {
             sorteableArray = new SorteableArray(aRange.end() - aRange.start());
-            for (int i = aRange.start(); i <= aRange.end(); i++) {
-                sorteableArray.add(this.sorteableArray.getInPosition(i));
+            for (int position = aRange.start(); position <= aRange.end(); position++) {
+                sorteableArray.add(this.sorteableArray.getInPosition(position));
             }
         }
 
@@ -65,7 +61,7 @@ public class Sorter extends Thread {
     @Override
     public void run() {
         try {
-            this.mergeSortWorker(workPool);
+            this.mergeSortWorker();
         }
         catch (InterruptedException catchedError) {
             catchedError.printStackTrace();

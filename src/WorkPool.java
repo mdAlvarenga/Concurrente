@@ -9,18 +9,12 @@ public class WorkPool {
         this.rangeOfWorks = new ArrayList<>();
     }
 
-    public synchronized Boolean isEmpty() {
-        return this.rangeOfWorks.isEmpty();
-
-    }
-
-    public synchronized void push(RangeOfWork rangeOfWork) {
+    public void push(RangeOfWork rangeOfWork) {
         rangeOfWorks.add(rangeOfWork);
-        notifyAll();
     }
 
     public synchronized RangeOfWork getFirstReadyToWork() throws InterruptedException {
-        while(!hayAlMenosUnoQueEsteReadyToWork())
+        while(!atLeastOneIsReady())
             wait();
         RangeOfWork rangeOfWork = firstRangeOfWorkReadyToWork();
         this.rangeOfWorks.remove(rangeOfWork);
@@ -32,18 +26,18 @@ public class WorkPool {
         return rangeOfWorks.stream().filter(aRange -> aRange.readyToWork()).findFirst().get();
     }
 
-    public synchronized boolean hayAlMenosUnoQueEsteReadyToWork() {
+    public synchronized boolean atLeastOneIsReady() {
         return rangeOfWorks.stream().anyMatch(aRange-> aRange.readyToWork());
-
     }
 
-    public  void clean() {
-        this.rangeOfWorks =
-                rangeOfWorks.stream().filter(aRange -> !aRange.isTheLast()).collect(Collectors.toCollection(ArrayList::new));
-
+    public  void cleanTrivialRanges() {
+        this.rangeOfWorks = this.rangeOfWorks
+                                    .stream()
+                                    .filter(aRange -> !aRange.isTheLast())
+                                    .collect(Collectors.toCollection(ArrayList::new));
     }
 
-    public Integer quantityOfWork() {
+    public int quantityOfWork() {
         return this.rangeOfWorks.size();
     }
 }

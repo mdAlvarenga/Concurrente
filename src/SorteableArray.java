@@ -132,7 +132,7 @@ public class SorteableArray {
 
         createUnitsOfWorks(workPool, leftRangeOfWork);
         createUnitsOfWorks(workPool, rightRangeOfWork);
-        workPool.clean();
+        workPool.cleanTrivialRanges();
         return workPool;
     }
 
