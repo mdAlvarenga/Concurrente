@@ -28,13 +28,13 @@ public class ConcurrenceTest {
     this.unsortedSorteableArrayTenThousandElements = new SorteableArray(10000);
   }
 
-  private void fillSortedCList(int maxAmount,SorteableArray sortedSorteableArray) {
+  private void fillSortedArray(int maxAmount, SorteableArray sortedSorteableArray) {
     for (int i = 1; i <= maxAmount; i++) {
       sortedSorteableArray.add(i);
     }
   }
 
-  private void fillUnsortedCList(int maxAmount,SorteableArray sortedSorteableArray) {
+  private void fillUnsortedArray(int maxAmount, SorteableArray sortedSorteableArray) {
     for (int i = maxAmount; i >= 1; i--) {
       sortedSorteableArray.add(i);
     }
@@ -43,12 +43,12 @@ public class ConcurrenceTest {
   private boolean compareArray(int [] a1, int [] a2){
     boolean equals = false;
     if(a1.length == a2.length){
-      int emembers =0;
+      int members =0;
       for(int i=0 ; i < a1.length ; i++){
         if(a1[i] == a2[i])
-          emembers++;
+          members++;
       }
-      if(emembers == a1.length)
+      if(members == a1.length)
         equals=true;
     }
     return equals;
@@ -57,8 +57,8 @@ public class ConcurrenceTest {
   @Test
   public void tenElementsOneThread() throws InterruptedException {
     nElements = 10;
-    fillSortedCList(nElements, sortedSorteableArrayWithTenElements);
-    fillUnsortedCList(nElements, unsortedSorteableArraWithTenElements);
+    fillSortedArray(nElements, sortedSorteableArrayWithTenElements);
+    fillUnsortedArray(nElements, unsortedSorteableArraWithTenElements);
     unsortedSorteableArraWithTenElements.mergeSort(1);
     assertTrue(compareArray(unsortedSorteableArraWithTenElements.array(), sortedSorteableArrayWithTenElements.array()));
   }
@@ -66,8 +66,8 @@ public class ConcurrenceTest {
   @Test
   public void tenElementsThreeThreads() throws InterruptedException {
     nElements = 10;
-    fillSortedCList(nElements, sortedSorteableArrayWithTenElements);
-    fillUnsortedCList(nElements, unsortedSorteableArraWithTenElements);
+    fillSortedArray(nElements, sortedSorteableArrayWithTenElements);
+    fillUnsortedArray(nElements, unsortedSorteableArraWithTenElements);
     unsortedSorteableArraWithTenElements.mergeSort(3);
     assertTrue(compareArray(unsortedSorteableArraWithTenElements.array(), sortedSorteableArrayWithTenElements.array()));
   }
@@ -75,8 +75,8 @@ public class ConcurrenceTest {
   @Test
   public void hundredElementsOneThread() throws InterruptedException {
     nElements = 100;
-    fillSortedCList(nElements, sortedSorteableArrayOneHundredElements);
-    fillUnsortedCList(nElements, unsortedSorteableArrayOneHundredElements);
+    fillSortedArray(nElements, sortedSorteableArrayOneHundredElements);
+    fillUnsortedArray(nElements, unsortedSorteableArrayOneHundredElements);
     unsortedSorteableArrayOneHundredElements.mergeSort( 1);
     assertTrue(compareArray(unsortedSorteableArrayOneHundredElements.array(), sortedSorteableArrayOneHundredElements.array()));
   }
@@ -84,8 +84,8 @@ public class ConcurrenceTest {
   @Test
   public void hundredElementsThreeThreads() throws InterruptedException {
     nElements = 100;
-    fillSortedCList(nElements, sortedSorteableArrayOneHundredElements);
-    fillUnsortedCList(nElements, unsortedSorteableArrayOneHundredElements);
+    fillSortedArray(nElements, sortedSorteableArrayOneHundredElements);
+    fillUnsortedArray(nElements, unsortedSorteableArrayOneHundredElements);
     unsortedSorteableArrayOneHundredElements.mergeSort(3);
     assertTrue(compareArray(unsortedSorteableArrayOneHundredElements.array(), sortedSorteableArrayOneHundredElements.array()));
   }
@@ -93,8 +93,8 @@ public class ConcurrenceTest {
   @Test
   public void thousandElementsOneThread() throws InterruptedException {
     nElements = 1000;
-    fillSortedCList(nElements, sortedSorteableArrayAThousandElements);
-    fillUnsortedCList(nElements, unsortedSorteableArrayAThousandElements);
+    fillSortedArray(nElements, sortedSorteableArrayAThousandElements);
+    fillUnsortedArray(nElements, unsortedSorteableArrayAThousandElements);
     unsortedSorteableArrayAThousandElements.mergeSort(1);
     assertTrue(compareArray(unsortedSorteableArrayAThousandElements.array(), sortedSorteableArrayAThousandElements.array()));
   }
@@ -102,8 +102,8 @@ public class ConcurrenceTest {
   @Test
   public void thousandElementsThreeThreads() throws InterruptedException {
     nElements = 1000;
-    fillSortedCList(nElements, sortedSorteableArrayAThousandElements);
-    fillUnsortedCList(nElements, unsortedSorteableArrayAThousandElements);
+    fillSortedArray(nElements, sortedSorteableArrayAThousandElements);
+    fillUnsortedArray(nElements, unsortedSorteableArrayAThousandElements);
     unsortedSorteableArrayAThousandElements.mergeSort(3);
     assertTrue(compareArray(unsortedSorteableArrayAThousandElements.array(), sortedSorteableArrayAThousandElements.array()));
   }
@@ -111,8 +111,8 @@ public class ConcurrenceTest {
   @Test
   public void tenThousandElementsOneThread() throws InterruptedException {
     nElements = 10000;
-    fillSortedCList(nElements, sortedSorteableArrayTenThousandElements);
-    fillUnsortedCList(nElements, unsortedSorteableArrayTenThousandElements);
+    fillSortedArray(nElements, sortedSorteableArrayTenThousandElements);
+    fillUnsortedArray(nElements, unsortedSorteableArrayTenThousandElements);
     unsortedSorteableArrayTenThousandElements.mergeSort(1);
     assertTrue(compareArray(unsortedSorteableArrayTenThousandElements.array(), sortedSorteableArrayTenThousandElements.array()));
   }
@@ -120,8 +120,8 @@ public class ConcurrenceTest {
   @Test
   public void tenThousandElementsThreeThreads() throws InterruptedException {
     nElements = 10000;
-    fillSortedCList(nElements, sortedSorteableArrayTenThousandElements);
-    fillUnsortedCList(nElements, unsortedSorteableArrayTenThousandElements);
+    fillSortedArray(nElements, sortedSorteableArrayTenThousandElements);
+    fillUnsortedArray(nElements, unsortedSorteableArrayTenThousandElements);
     unsortedSorteableArrayTenThousandElements.mergeSort(3);
     assertTrue(compareArray(unsortedSorteableArrayTenThousandElements.array(), sortedSorteableArrayTenThousandElements.array()));
   }

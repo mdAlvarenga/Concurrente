@@ -30,7 +30,7 @@ public class RangeOfWork {
         return this.start() == this.end() ;
     }
 
-    public boolean readyToWork() {
+    public boolean isReadyToWork() {
         return !isSorted()&& (isTheLast() || allSonsAreSortered());
     }
 
@@ -62,7 +62,4 @@ public class RangeOfWork {
     return this.start > this.end;
   }
 
-    public Boolean isValid() {
-    return this.start >= 0;
-  }
 }
