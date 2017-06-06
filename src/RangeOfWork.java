@@ -57,4 +57,12 @@ public class RangeOfWork {
     public synchronized void finishOrder() {
         this.isSorted = true;
     }
+
+    public boolean isEmpty() {
+    return this.start > this.end;
+  }
+
+    public Boolean isValid() {
+    return this.start >= 0;
+  }
 }
