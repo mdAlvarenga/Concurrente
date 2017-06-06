@@ -1,63 +1,73 @@
+import java.util.ArrayList;
+import java.util.List;
+
 public class SorteableArray {
 
     private int[] array;
-    private int cantidadDeElementosEnElArray;
+    private int quantityOfElements;
 
-    public SorteableArray(int tamanio) {
-        this.array = new int[tamanio];
-        this.cantidadDeElementosEnElArray = 0;
+    public SorteableArray(int sizeOfArray) {
+        this.array = new int[sizeOfArray];
+        this.quantityOfElements = 0;
     }
 
-    public int[] array(){
+    public int[] array() {
         return this.array;
     }
 
-    public int size() {
-        return this.cantidadDeElementosEnElArray;
+    public synchronized int size() {
+        return this.quantityOfElements;
     }
 
-    public Boolean isEmpty() {
-        return this.cantidadDeElementosEnElArray == 0;
+    public synchronized Boolean isEmpty() {
+        return this.quantityOfElements == 0;
     }
 
-    public Boolean contains(int elem) {
-        boolean contain = false;
-        for (int i = 0; i < this.size(); i++) {
-            contain = array[i] == elem;
+    public synchronized Boolean contains(int anElement) {
+        boolean contains = false;
+        for (int index = 0; index < this.size(); index++) {
+            contains = array[index] == anElement || contains;
         }
-        return contain;
+        return contains;
     }
 
-    public synchronized void add(int valor) {
-        if (cantidadDeElementosEnElArray < this.array.length)
-            siHayLugarEnElArrayAgregar(valor);
-        else
-            agregarANuevoArraySiNoHayLugar(valor);
-        notifyAll();
+    private void safeAdd(int anElement) {
+        this.array[quantityOfElements] = anElement;
+        quantityOfElements++;
     }
 
-    private void siHayLugarEnElArrayAgregar(int valor) {
-        array[cantidadDeElementosEnElArray] = valor;
-        cantidadDeElementosEnElArray++;
-        notifyAll();
-    }
-
-    private void agregarANuevoArraySiNoHayLugar(int valor){
-        int[] copiaArray = array;
-        array = new int[copiaArray.length * 2];
-        for (int i = 0; i < copiaArray.length; i++) {
-            array[i] = copiaArray[i];
+    private void duplicateArray(){
+        int[] backUpArray = this.array;
+        this.array = new int[backUpArray.length * 2];
+        for (int indexToAdd = 0; indexToAdd < backUpArray.length; indexToAdd++) {
+            this.array[indexToAdd] = backUpArray[indexToAdd];
         }
-        array[cantidadDeElementosEnElArray] = valor;
-        cantidadDeElementosEnElArray++;
+    }
+
+    private int safePop(){
+        int firstElement = array[0];
+        int[] arrayBackUp = new int[array.length];
+        for (int indexToAdd = 0; indexToAdd < arrayBackUp.length-1; indexToAdd++) {
+            arrayBackUp[indexToAdd] = array[indexToAdd+1];
+        }
+        this.array = arrayBackUp;
+        quantityOfElements--;
+        return firstElement;
+    }
+
+    public synchronized void add(int toAdd) {
+        if (quantityOfElements == this.array.length)
+            duplicateArray();
+        safeAdd(toAdd);
+        notifyAll();
     }
 
     public synchronized int peek() {
         while (this.isEmpty()) {
             try {
                 wait();
-            }catch (InterruptedException e) {
-                e.printStackTrace();
+            }catch (InterruptedException error) {
+                error.printStackTrace();
             }
         }
         return array[0];
@@ -67,63 +77,95 @@ public class SorteableArray {
         while (this.isEmpty()) {
             try {
                 wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            } catch (InterruptedException error) {
+                error.printStackTrace();
             }
         }
-        return primerElementoDelArray();
+        return safePop();
     }
 
-    private int primerElementoDelArray(){
-        int first = array[0];
-        int[] copiaArray = new int[array.length];
-        for (int i = 0; i < copiaArray.length-1; i++) {
-            copiaArray[i] = array[i+1];
+    public synchronized void replaceWithArrayBetween(SorteableArray arrayToReplace, int startPositionToReplace, int endPositionToReplace) {
+        int indexForExternalArray = 0;
+
+        for (int toReplaceIndex = startPositionToReplace; toReplaceIndex <= endPositionToReplace; toReplaceIndex++) {
+            this.array[toReplaceIndex] = arrayToReplace.getInPosition(indexForExternalArray);
+            indexForExternalArray++;
         }
-        replaceArrayWith(copiaArray);
-        cantidadDeElementosEnElArray--;
-        return first;
     }
 
-    private void replaceArrayWith(int[] anArray) {
-        this.array = anArray;
+    public synchronized void addAll(SorteableArray elementsToAdd) {
+        int[] arrayToAdd = elementsToAdd.array();
+        for (int indexToAdd = 0; indexToAdd < elementsToAdd.size(); indexToAdd++) {
+            this.add(arrayToAdd[indexToAdd]);
+        }
     }
 
-    private void initializeThreadPool(SorteableArray sorteableArray, Integer threadQuantity, WorkPool workPool) {
+    public void mergeSort( int threadQuantity) throws InterruptedException {
+        if (this.size() > 1) {
+            WorkPool workPool = createWorkPoolWithUnitsOfWork();
+
+            JobStopper jobStopper = new JobStopper(workPool.quantityOfWork());
+            initializeThreadPool(workPool, threadQuantity, jobStopper);
+
+            jobStopper.waitToFinalize();
+        }
+    }
+
+    private void initializeThreadPool( WorkPool workPool, Integer threadQuantity, JobStopper jobStopper) {
+        List<Sorter> threadPool = new ArrayList<>();
         for (int i = 0; i < threadQuantity; i++) {
-            new Sorter(sorteableArray, workPool).start();
+            threadPool.add(new Sorter(this, workPool, jobStopper));
         }
+        threadPool.stream().forEach(aThread -> aThread.start());
     }
 
-    public void mergeSort(SorteableArray sorteableArray, int threadQuantity) throws InterruptedException {
-        WorkPool workPool = createAllUnitsOfWorks(sorteableArray);
-        initializeThreadPool(sorteableArray, threadQuantity, workPool);
-        //matar a todos los putos threads!!!
-    }
-
-    private WorkPool createAllUnitsOfWorks(SorteableArray sorteableArray) {
+    private WorkPool createWorkPoolWithUnitsOfWork() {
         WorkPool workPool = new WorkPool();
-
-        RangeOfWork leftRangeOfWork = new RangeOfWork(0, sorteableArray.size() / 2, null);
-        RangeOfWork rightRangeOfWork = new RangeOfWork(sorteableArray.size() / 2 + 1, sorteableArray.size(), null);
+        RangeOfWork principalRangeOFWork = new RangeOfWork(0, size() - 1);
+        RangeOfWork leftRangeOfWork = new RangeOfWork(0, size() / 2);
+        RangeOfWork rightRangeOfWork = new RangeOfWork(size() / 2 + 1, size() - 1);
+        principalRangeOFWork.addSon(leftRangeOfWork);
+        principalRangeOFWork.addSon(rightRangeOfWork);
+        workPool.push(principalRangeOFWork);
         workPool.push(leftRangeOfWork);
         workPool.push(rightRangeOfWork);
 
         createUnitsOfWorks(workPool, leftRangeOfWork);
         createUnitsOfWorks(workPool, rightRangeOfWork);
+        workPool.cleanTrivialRanges();
         return workPool;
     }
 
     private void createUnitsOfWorks(WorkPool workPool, RangeOfWork aRangeOfWork) {
         if(!(aRangeOfWork.isTheLast())){
-            RangeOfWork leftRangeOfWork = new RangeOfWork(aRangeOfWork.getStart(), (aRangeOfWork.getStart())+aRangeOfWork.size() / 2, aRangeOfWork);
-            RangeOfWork rightRangeOfWork = new RangeOfWork((aRangeOfWork.getStart()) + (aRangeOfWork.size() / 2) + 1, aRangeOfWork.getEnd(), aRangeOfWork);
+            RangeOfWork leftRangeOfWork = new RangeOfWork(aRangeOfWork.start(), (aRangeOfWork.start())+ aRangeOfWork.size() / 2);
+            RangeOfWork rightRangeOfWork = new RangeOfWork((aRangeOfWork.start()) + (aRangeOfWork.size() / 2) + 1, aRangeOfWork.end());
+            aRangeOfWork.addSon(leftRangeOfWork);
+            aRangeOfWork.addSon(rightRangeOfWork);
             workPool.push(leftRangeOfWork);
             workPool.push(rightRangeOfWork);
-
             createUnitsOfWorks(workPool, leftRangeOfWork);
             createUnitsOfWorks(workPool, rightRangeOfWork);
         }
     }
 
+    public int getInPosition(int aPosition) {
+        return this.array[aPosition];
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        int i = 50;
+        SorteableArray sorteableArray = new SorteableArray(50);
+        while(i > 0){
+            sorteableArray.add((int)(Math.random()*100+1));;
+            i--;
+        }
+        System.out.print("Antes del orden ");
+        Printer.printList(sorteableArray.array);
+
+        sorteableArray.mergeSort(10);
+
+        System.out.print("despues del orden :");
+        Printer.printList(sorteableArray.array());
+    }
 }

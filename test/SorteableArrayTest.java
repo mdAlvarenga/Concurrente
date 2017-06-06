@@ -3,75 +3,116 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-
 public class SorteableArrayTest {
 
-    private SorteableArray sortableArray;
-
-    @Before
-    public void setUp() throws Exception {
-        sortableArray = new SorteableArray(10);
+    @Test
+    public void whenTheSorteableArrayIsCreatedIsEmpty() {
+        SorteableArray sorteableArray = new SorteableArray(5);
+        assertTrue(sorteableArray.isEmpty());
     }
 
     @Test
-    public void test_estaVacio() {
-        assertTrue(sortableArray.isEmpty());
+    public void whenTheSorteableArrayIsCreatedAndAddAnElementNotIsEmpty() {
+        SorteableArray sorteableArray = new SorteableArray(5);
+        sorteableArray.add(99);
+        assertFalse(sorteableArray.isEmpty());
     }
 
     @Test
-    public void test_siElArrayContieneAlUno(){
-        assertFalse(sortableArray.contains(1));
+    public void whenSendContainsToSorteableArrayReturnTrue(){
+        SorteableArray sorteableArray = new SorteableArray(5);
+        sorteableArray.add(1);
+        sorteableArray.add(2);
+        sorteableArray.add(3);
+        assertTrue(sorteableArray.contains(2));
     }
 
     @Test
-    public void test_agregoUnElementoAlSorteableArrayYVerificoConElPeekQueSeaElPrimerElemento(){
-        sortableArray.add(1);
-        assertEquals(1, sortableArray.peek());
+    public void whenSendContainsToSorteableArrayReturnFalse(){
+        SorteableArray sorteableArray = new SorteableArray(5);
+        sorteableArray.add(1);
+        sorteableArray.add(2);
+        sorteableArray.add(3);
+        assertFalse(sorteableArray.contains(4));
     }
 
     @Test
-    public void test_agregoUnElementoAlSorteableArrayYVerificoConElPopQueSeaElPrimerElemento(){
-        sortableArray.add(1);
-        assertEquals(1, sortableArray.pop());
+    public void whenSendPeekToSorteableArrayReturnCorrectNumber(){
+        SorteableArray sorteableArray = new SorteableArray(5);
+        sorteableArray.add(1);
+        sorteableArray.add(2);
+        sorteableArray.add(3);
+        assertEquals(1, sorteableArray.peek());
     }
 
     @Test
-    public void test_hagoElPopDeUnArrayConUnElementoYElArrayQuedaVacio(){
-        sortableArray.add(1);
-        sortableArray.pop();
-        assertTrue(sortableArray.isEmpty());
+    public void whenSendPopToSorteableArrayReturnCorrectNumberAndTheNumberNotExistsInSorteableArray(){
+        SorteableArray sorteableArray = new SorteableArray(5);
+        sorteableArray.add(3);
+        sorteableArray.add(4);
+        sorteableArray.add(5);
+        assertTrue(sorteableArray.contains(3));
+
+        int elementPop = sorteableArray.pop();
+
+        assertEquals(3, elementPop);
+        assertFalse(sorteableArray.contains(3));
     }
 
     @Test
-    public void test_tamanioDelArray(){
-        sortableArray.add(4);
-        assertEquals(1, sortableArray.size());
+    public void whenSendSizeToSorteableArrayWithoutElementsReturnZero(){
+        SorteableArray sorteableArray = new SorteableArray(5);
+        assertEquals(0, sorteableArray.size());
     }
 
     @Test
-    public void test_contieneUnElementoAgregado(){
-        sortableArray.add(1);
-        assertTrue(sortableArray.contains(1));
+    public void whenSendSizeToSorteableArrayWithTwoElementsReturnTwo(){
+        SorteableArray sorteableArray = new SorteableArray(5);
+        sorteableArray.add(4);
+        sorteableArray.add(2);
+        assertEquals(2, sorteableArray.size());
     }
 
     @Test
-    public void cuandoOrdenoUnArregloObtengoElMismoArregloOrdenadoCorrectamente() throws InterruptedException{
-        sortableArray.add(17);
-        sortableArray.add(1);
-        sortableArray.add(22);
-        sortableArray.add(23);
-        sortableArray.add(2);
+    public void whenAddAnElementToSorteableArrayNowThisContainsThisElement(){
+        SorteableArray sorteableArray = new SorteableArray(4);
+        assertFalse(sorteableArray.contains(10));
 
-        sortableArray.mergeSort(sortableArray,4);
+        sorteableArray.add(10);
 
-        int[] expectedArray = new int[8];
-        expectedArray[0] = 1;
-        expectedArray[1] = 2;
-        expectedArray[2] = 17;
-        expectedArray[3] = 22;
-        expectedArray[4] = 23;
+        assertTrue(sorteableArray.contains(10));
+    }
 
-        assertEquals(expectedArray, sortableArray.array());
+    @Test
+    public void whenAddAnElementToFullSorteableArrayThisDuplicatesHisArrayLenght(){
+        SorteableArray sorteableArray = new SorteableArray(4);
+        sorteableArray.add(10);
+        sorteableArray.add(11);
+        sorteableArray.add(12);
+        sorteableArray.add(13);
+        assertTrue(sorteableArray.array().length == 4);
+
+        sorteableArray.add(14);
+
+        assertTrue(sorteableArray.array().length == 8);
+    }
+
+    @Test
+    public void whenSortASorteableArrayReturnTheArrayOrdered() throws InterruptedException{
+        SorteableArray sorteableArray = new SorteableArray(5);
+        sorteableArray.add(17);
+        sorteableArray.add(1);
+        sorteableArray.add(22);
+        sorteableArray.add(23);
+        sorteableArray.add(2);
+
+        sorteableArray.mergeSort(2);
+
+        assertEquals(1, sorteableArray.getInPosition(0));
+        assertEquals(2, sorteableArray.getInPosition(1));
+        assertEquals(17, sorteableArray.getInPosition(2));
+        assertEquals(22, sorteableArray.getInPosition(3));
+        assertEquals(23, sorteableArray.getInPosition(4));
     }
 }
 

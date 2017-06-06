@@ -1,29 +1,43 @@
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 public class WorkPool {
 
     private ArrayList<RangeOfWork> rangeOfWorks;
 
     public WorkPool() {
-        this.rangeOfWorks = new ArrayList<RangeOfWork>();
+        this.rangeOfWorks = new ArrayList<>();
     }
 
-    public Boolean isEmpty() {
-        return this.rangeOfWorks.isEmpty();
-    }
-
-    public synchronized void push(RangeOfWork rangeOfWork) {
+    public void push(RangeOfWork rangeOfWork) {
         rangeOfWorks.add(rangeOfWork);
-        notifyAll();
     }
 
-    public synchronized RangeOfWork pop() throws InterruptedException {
-        while(rangeOfWorks.isEmpty())
+    public synchronized RangeOfWork getFirstReadyToWork() throws InterruptedException {
+        while(!atLeastOneIsReady())
             wait();
-        RangeOfWork rangeOfWork = this.rangeOfWorks.get(this.rangeOfWorks.size() - 1);
-        this.rangeOfWorks.remove(this.rangeOfWorks.size() - 1);
+        RangeOfWork rangeOfWork = firstRangeOfWorkReadyToWork();
+        this.rangeOfWorks.remove(rangeOfWork);
         notifyAll();
         return rangeOfWork;
     }
 
+    private RangeOfWork firstRangeOfWorkReadyToWork() {
+        return rangeOfWorks.stream().filter(aRange -> aRange.readyToWork()).findFirst().get();
+    }
+
+    public synchronized boolean atLeastOneIsReady() {
+        return rangeOfWorks.stream().anyMatch(aRange-> aRange.readyToWork());
+    }
+
+    public  void cleanTrivialRanges() {
+        this.rangeOfWorks = this.rangeOfWorks
+                                    .stream()
+                                    .filter(aRange -> !aRange.isTheLast())
+                                    .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    public int quantityOfWork() {
+        return this.rangeOfWorks.size();
+    }
 }
