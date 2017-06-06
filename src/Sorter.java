@@ -13,9 +13,9 @@ public class Sorter extends Thread {
     private void mergeSortWorker(WorkPool workPool) throws InterruptedException {
         while(workPool.hayAlMenosUnoQueEsteReadyToWork()) {
             RangeOfWork rangeToWork = workPool.getFirstReadyToWork();
-            System.out.println("Soy el thread:" +Thread.currentThread()+" y Tome el trabajo que tiene Start " + rangeToWork.getStart() + " hasta " + rangeToWork.getEnd());
+            System.out.println("Soy el thread:" +Thread.currentThread()+" y Tome el trabajo que tiene Start " + rangeToWork.start() + " hasta " + rangeToWork.end());
             if(rangeToWork.isTheLast()){
-                rangeToWork.finishOrder(workPool);
+                rangeToWork.finishOrder();
                return;
             }
             RangeOfWork firstRangeSon = rangeToWork.getFirstSon();
@@ -24,8 +24,8 @@ public class Sorter extends Thread {
             SorteableArray firstSorteableArray = createSorteableFrom(firstRangeSon);
             SorteableArray secondSorteableArray = createSorteableFrom(secondRangeSon);
 
-            this.sorteableArray.replaceArrayBetween(merge(firstSorteableArray, secondSorteableArray),firstRangeSon.getStart(),secondRangeSon.getEnd());
-            rangeToWork.finishOrder(workPool);
+            this.sorteableArray.replaceWithArrayBetween(merge(firstSorteableArray, secondSorteableArray),firstRangeSon.start(),secondRangeSon.end());
+            rangeToWork.finishOrder();
             this.jobStopper.decrease();
         }
         System.out.println("Soy el thread:" +Thread.currentThread()+" y ya no tengo mas trabajo");
@@ -51,10 +51,10 @@ public class Sorter extends Thread {
         SorteableArray sorteableArray;
         if(aRange.isTheLast()){
             sorteableArray = new SorteableArray(1);
-            sorteableArray.add(this.sorteableArray.getInPosition(aRange.getStart()));
+            sorteableArray.add(this.sorteableArray.getInPosition(aRange.start()));
         }else {
-            sorteableArray = new SorteableArray(aRange.getEnd() - aRange.getStart());
-            for (int i = aRange.getStart(); i <= aRange.getEnd(); i++) {
+            sorteableArray = new SorteableArray(aRange.end() - aRange.start());
+            for (int i = aRange.start(); i <= aRange.end(); i++) {
                 sorteableArray.add(this.sorteableArray.getInPosition(i));
             }
         }

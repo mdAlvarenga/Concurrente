@@ -1,11 +1,11 @@
 public class Printer {
 
     public static void printList(int[] list){
-        System.out.println("Comienza el array");
+        System.out.println("Begin the array: ");
 
-        for (int i = 0; i <= list.length - 1; i++) {
-            System.out.println(list[i] + " ");
+        for (int index = 0; index <= list.length - 1; index++) {
+            System.out.println(list[index] + " ");
         }
-        System.out.println("Fin del array");
+        System.out.println("End of array.");
     }
 }
