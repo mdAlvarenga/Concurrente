@@ -23,11 +23,11 @@ public class WorkPool {
     }
 
     private RangeOfWork firstRangeOfWorkReadyToWork() {
-        return rangeOfWorks.stream().filter(aRange -> aRange.readyToWork()).findFirst().get();
+        return rangeOfWorks.stream().filter(aRange -> aRange.isReadyToWork()).findFirst().get();
     }
 
     public synchronized boolean atLeastOneIsReady() {
-        return rangeOfWorks.stream().anyMatch(aRange-> aRange.readyToWork());
+        return rangeOfWorks.stream().anyMatch(aRange-> aRange.isReadyToWork());
     }
 
     public  void cleanTrivialRanges() {
